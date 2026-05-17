@@ -1,15 +1,23 @@
 [project]
-name = "project-name"
+name = "ows-retrieval"
 version = "0.1.0"
-description = "Research repository template for experimental and documentation-driven work."
+description = "BM25 vs FAISS+Jina V3 retrieval evaluation on the ows-curlie-2025 / radboud-val split."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [
-  { name = "Your Name" }
+  { name = "Sveva Nemeth" }
 ]
-dependencies = []
+dependencies = [
+  "pandas",
+  "pyarrow",
+  "numpy",
+  "jupyter",
+]
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

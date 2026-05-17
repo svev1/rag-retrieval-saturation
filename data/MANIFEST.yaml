@@ -1,0 +1,57 @@
+# MANIFEST — Open Web Search Curlie 2025 / radboud-val split
+#
+# This file is the canonical pointer to the dataset used by this project.
+# The actual data files are NOT committed to git (see .gitignore); they live
+# in data/raw/ and can be reproduced by running scripts/download_data.sh.
+
+dataset:
+  name: ows-curlie-2025/radboud-val
+  full_name: "Open Web Search Curlie 2025 — Radboud Validation Split"
+  uuid: b510baa6-ebd2-11f0-8c43-02a47ca5d9fd
+  catalogue_url: https://openwebindex.eu/corpora/b510baa6-ebd2-11f0-8c43-02a47ca5d9fd
+  host: "LEXIS / IT4Innovations (IT4ILexisV2)"
+  access: "public (B2ACCESS / LEXIS AAI authentication required)"
+  citation: |
+    OpenWebSearch.eu Consortium. 2025. ows-curlie-2025/radboud-val:
+    Open Web Search Curlie 2025 Corpus, Radboud Validation Split.
+    https://openwebindex.eu/corpora/b510baa6-ebd2-11f0-8c43-02a47ca5d9fd
+
+retrieval:
+  tool: owilix
+  tool_version: 5.4.0
+  tool_image: opencode.it4i.eu:5050/openwebsearcheu-public/owi-cli:latest
+  downloaded_on: 2026-05-13
+  downloaded_by: nemeth10@ads.uni-passau.de
+  total_size_bytes: 859159549
+  total_size_human: "~820 MiB"
+
+files:
+  - path: data/raw/topics.tsv
+    role: "queries / search topics"
+    remote: radboud-val/topics.tsv
+    size_bytes: 894
+    sha256: 807a6da8171e6fe07763ab4c1ce5a8b55d7ddac3c505b8d6f1b5123258cf02f0
+
+  - path: data/raw/qrels.txt
+    role: "relevance judgments (TREC qrels format)"
+    remote: radboud-val/qrels.txt
+    size_bytes: 95611
+    sha256: a1bfda4b02b3faedfd862a687c2b9438eba248e4937570e313895a4d16962bd0
+
+  - path: data/raw/subsample.parquet
+    role: "document subset (text + metadata)"
+    remote: radboud-val/subsample.parquet
+    size_bytes: 415367420
+    sha256: 887710fbdbcfd3225653bca426b5552e65151fd23b8d3d4126a44477658db742
+
+  - path: data/raw/subsample_embeddings.parquet
+    role: "precomputed Jina V3 document embeddings (for the dense retrieval baseline)"
+    remote: radboud-val/subsample_embeddings.parquet
+    size_bytes: 443695624
+    sha256: 82b0c04d16a9a25b0aed8160e7cd72c9b42e1c8bdabc38304647b3e1b726131c
+
+# Files in the split that we intentionally did NOT download:
+not_downloaded:
+  - remote: radboud-val/subsample.jsonl.gz
+    size_bytes: 401611981
+    reason: "Same documents as subsample.parquet, just a different file format. Can be added later by re-running the download script with the appropriate glob."
