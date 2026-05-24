@@ -3,11 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-# Path to the data/raw folder, relative to this file.
-# __file__ is the path of this script (data.py).
-# Going up three parents: ows_retrieval/ -> src/ -> project root.
 DATA_RAW = Path(__file__).resolve().parents[2] / "data" / "raw"
-
 
 def load_topics() -> pd.DataFrame:
     """Load the topics from topics.tsv.

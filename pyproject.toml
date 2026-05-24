@@ -13,6 +13,9 @@ dependencies = [
   "pyarrow",
   "numpy",
   "jupyter",
+  "rank_bm25",
+  "ir_measures",
+  "nltk",
 ]
 
 [build-system]
