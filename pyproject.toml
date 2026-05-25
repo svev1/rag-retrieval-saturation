@@ -16,6 +16,12 @@ dependencies = [
   "rank_bm25",
   "ir_measures",
   "nltk",
+  # Dense retrieval (Milestone 1 — Part 2)
+  "faiss-cpu",
+  "transformers",
+  "torch",
+  "einops",
+  "sentencepiece",
 ]
 
 [build-system]
