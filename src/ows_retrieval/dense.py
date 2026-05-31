@@ -48,3 +48,55 @@ def build_index(chunk_vectors: np.ndarray) -> faiss.IndexFlatIP:
     index = faiss.IndexFlatIP(dim)
     index.add(chunk_vectors)
     return index
+
+
+def normalize(vectors: np.ndarray) -> np.ndarray:
+    """L2-normalize each row to *exactly* unit length.
+
+    The stored vectors are normalized at write time, but float32 rounding
+    leaves their norms at 1.0 +/- ~4e-3. IndexFlatIP ranks by inner product,
+    and inner product == cosine only when both sides are exactly unit length.
+    Dividing each row by its measured norm removes that slop so the scores are
+    cosine to float precision (and a vector dotted with itself returns 1.0).
+
+    norms[:, None] reshapes (N,) -> (N, 1) so the division broadcasts across
+    every column: each row is divided by its own scalar norm.
+    """
+    vectors = np.asarray(vectors, dtype=np.float32)
+    norms = np.linalg.norm(vectors, axis=1)
+    return vectors / norms[:, None]
+
+
+def search(
+    index: faiss.IndexFlatIP,
+    doc_ids: np.ndarray,
+    query_vector: np.ndarray,
+    k: int = 10,
+    candidate_depth: int = 1000,
+):
+    """Run one query against the chunk index, return its top-k DOCUMENTS.
+
+    Returns:
+        top_doc_ids: 1D object array of k document ids, best first.
+        top_scores:  1D float32 array of their cosine scores, descending.
+    """
+    # FAISS wants a 2D (n_queries, dim) float32 array; normalize for exact cosine.
+    query = normalize(np.asarray(query_vector, dtype=np.float32).reshape(1, -1))
+
+    # Pull a deep pool of chunks: far more than k, since many chunks collapse
+    # into the same doc. scores/idxs come back shaped (1, candidate_depth).
+    scores, idxs = index.search(query, candidate_depth)
+    scores, idxs = scores[0], idxs[0]
+
+    # Max-over-chunks per doc_id: a doc's score is its best-matching chunk's.
+    best_score: dict = {}
+    for score, idx in zip(scores, idxs):
+        doc_id = doc_ids[idx]
+        if doc_id not in best_score or score > best_score[doc_id]:
+            best_score[doc_id] = float(score)
+
+    # Rank docs by score (descending), keep the top k.
+    ranked = sorted(best_score.items(), key=lambda kv: kv[1], reverse=True)[:k]
+    top_doc_ids = np.array([doc_id for doc_id, _ in ranked], dtype=object)
+    top_scores = np.array([score for _, score in ranked], dtype=np.float32)
+    return top_doc_ids, top_scores

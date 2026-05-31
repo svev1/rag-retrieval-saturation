@@ -1,0 +1,27 @@
+Building index...
+  index.ntotal = 185833
+
+Topic 3: 'split ergo keyboard'   (10 relevant docs)
+  task                    best_rel_rank  median_rel_rank   rels_in_topN
+  retrieval.query                  7567            20001    3/10
+  retrieval.passage               20001            20001    0/10
+  text-matching                    2761            20001    2/10
+  separation                       1730            20001    4/10
+  (no task)                        1901            20001    3/10
+
+Topic 4: 'metoo Hollywood'   (13 relevant docs)
+  task                    best_rel_rank  median_rel_rank   rels_in_topN
+  retrieval.query                  5042            20001    4/13
+  retrieval.passage                1395            20001    5/13
+  text-matching                    5781            20001    4/13
+  separation                       5716            20001    2/13
+  (no task)                        6561            20001    3/13
+
+Topic 7: 'gastritis symptoms'   (13 relevant docs)
+  task                    best_rel_rank  median_rel_rank   rels_in_topN
+  retrieval.query                  3981            12043    7/13
+  retrieval.passage                5203            20001    3/13
+  text-matching                    3476            11998    8/13
+  separation                       7684            20001    5/13
+  (no task)                        5520            20001    5/13
+

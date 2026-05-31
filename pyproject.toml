@@ -1,7 +1,7 @@
 [project]
 name = "ows-retrieval"
 version = "0.1.0"
-description = "BM25 vs FAISS+Jina V3 retrieval evaluation on the ows-curlie-2025 / radboud-val split."
+description = "BM25 vs dense (FAISS over Jina V5 nano) retrieval evaluation on the ows-curlie-2025 / radboud-val split."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -16,13 +16,46 @@ dependencies = [
   "rank_bm25",
   "ir_measures",
   "nltk",
-  # Dense retrieval (Milestone 1 — Part 2)
+  # Dense retrieval: FAISS only. Queries and chunks are both pre-embedded
+  # with jina-embeddings-v5-text-nano-retrieval (see docs/embeddings.md), so no
+  # runtime encoder is needed for the dense baseline.
   "faiss-cpu",
-  "transformers",
+]
+
+[project.optional-dependencies]
+# Only needed to re-run the dense-embedding investigation probes under
+# experiments/2026-05-25_dense-embedding-investigation/, which load Jina V3
+# at runtime via ows_retrieval.jina_v3_encoder. The dense baseline itself
+# needs none of these (queries and chunks are pre-embedded; see docs/embeddings.md).
+# transformers is pinned <5: V5.x renamed an attribute Jina's V3 custom code
+# relies on (_tied_weights_keys -> all_tied_weights_keys), which breaks load.
+investigation = [
+  "transformers>=4.41,<5",
   "torch",
   "einops",
   "sentencepiece",
 ]
+# Needed only to RE-RUN the embedding job under src/ows_retrieval/embedding/
+# (reproducing the data/raw/*.jina-v5-nano.*.parquet artifacts). The retrieval
+# baselines read the precomputed parquet files and need none of this.
+# NOTE: this group pins transformers>=5.1 for Jina V5; the `investigation` group
+# above pins transformers<5 for Jina V3 — install them in separate envs.
+embedding = [
+  "sentence-transformers>=5.1,<6",
+  "transformers>=5.1,<6",
+  "torch>=2.8",
+  "einops>=0.7",
+  "peft>=0.15.2",
+  "huggingface-hub>=0.23",
+  "ir-datasets>=0.5.8",
+  "ir-datasets-owi>=0.0.6",
+  "tqdm>=4.66",
+]
+
+[project.scripts]
+ows-embed = "ows_retrieval.embedding.cli:embed_docs_main"
+ows-embed-queries = "ows_retrieval.embedding.cli:embed_queries_main"
+ows-verify-embeddings = "ows_retrieval.embedding.cli:verify_main"
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]

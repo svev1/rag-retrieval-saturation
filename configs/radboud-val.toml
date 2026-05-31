@@ -1,0 +1,36 @@
+[dataset]
+collection_id = "b510baa6-ebd2-11f0-8c43-02a47ca5d9fd"
+dataset_id = "ows-curlie-2025/radboud-val"
+source_subset = "radboud-val"
+source_text_field = "default_text"
+dataset_batch_size = 2048
+
+[model]
+model_id = "jinaai/jina-embeddings-v5-text-nano-retrieval"
+# Pin this before a full run with:
+# python -m ows_retrieval.embedding.resolve_revision jinaai/jina-embeddings-v5-text-nano-retrieval
+model_revision = "ac5d898c8d382b17167c33e5c8af644a3519b47d"
+document_task = ""
+query_task = ""
+document_prompt_name = "document"
+query_prompt_name = "query"
+trust_remote_code = true
+normalize_embeddings = true
+output_dtype = "float32"
+device = "auto"
+
+[chunking]
+chunk_size_tokens = 1024
+chunk_overlap_tokens = 128
+
+[output]
+# Resolved relative to the repo root (config dir's parent). Both are gitignored.
+runs_dir = "data/interim/embedding-runs"
+embeddings_dir = "data/raw"
+write_batch_size = 512
+final_doc_artifact = "radboud-val.jina-v5-nano.chunks-1024.parquet"
+final_query_artifact = "radboud-val.jina-v5-nano.queries.parquet"
+
+[runtime]
+encode_batch_size = 16
+log_level = "INFO"

@@ -1,0 +1,60 @@
+Loading V5 query embeddings...
+  queries loaded: 28  (each is 768-d)
+Loading V5 chunk embeddings (this is the big one, ~300k rows)...
+  chunks loaded: 302736  (each is 768-d)
+  distinct docs: 63639
+Grouping chunks by doc_id...
+  grouped: 63639 docs
+
+Topic 3: 'split ergo keyboard'
+  kind        rel      cos  doc_id
+  relevant      3   0.7175  b3e91b38eed01867..
+  relevant      2   0.5025  0613590b24db271a..
+  relevant      1   0.6495  1ddb8e93d2259c71..
+  random        -   0.0691  94590bb2aa31124e..
+  random        -   0.0642  0e3e93ccb51c47c6..
+  random        -   0.0925  b8afcd4be07338bc..
+
+Topic 4: 'metoo Hollywood'
+  kind        rel      cos  doc_id
+  relevant      3   0.6511  7905c3cc8b834303..
+  relevant      3   0.6583  8644e516f8722b2e..
+  relevant      2   0.3752  4b414adb6ce39c9e..
+  random        -   0.0286  0d62e6463007bd15..
+  random        -   0.1328  a14b136e70777592..
+  random        -   0.1485  d3074d7b5a883efd..
+
+Topic 7: 'gastritis symptoms'
+  kind        rel      cos  doc_id
+  relevant      3   0.7377  1b0e7ca7179af4e4..
+  relevant      3   0.7244  3eda9285e6a683f6..
+  relevant      3   0.7449  aae8a9d7bc1b4f93..
+  random        -   0.0333  7223c22b9f153cea..
+  random        -   0.0546  f837ef5990e31bd0..
+  random        -   0.1343  ad116c2c57ba7e64..
+
+Topic 8: 'What is privacy by design(PbD)?'
+  kind        rel      cos  doc_id
+  relevant      3   0.6328  36fad4e674f653cd..
+  relevant      3   0.6619  b1c85bdee503c32d..
+  relevant      2   0.6813  1863a76c95cef317..
+  random        -   0.1364  6ed7e18d041d294a..
+  random        -   0.0911  bc34a5aadb16e0c1..
+  random        -   0.1312  19369488714ce375..
+
+Topic 13: 'Impact of Exercise on Depression'
+  kind        rel      cos  doc_id
+  relevant      3   0.8101  62bb394fff84a326..
+  relevant      3   0.7770  cb84a6f2f1ff19f9..
+  relevant      2   0.6738  24778867a89da621..
+  random        -   0.1404  6bfee6e9bb374ca2..
+  random        -  -0.0048  4b78ca1fde5428a2..
+  random        -   0.0547  297514793b8acdaf..
+
+=== overall ===
+  relevant : n=15  mean=0.6665  min=0.3752  max=0.8101
+  random   : n=15  mean=0.0871  min=-0.0048  max=0.1485
+  gap (rel mean - rand mean) = +0.5794
+
+Pass criterion: gap clearly positive (e.g. > +0.2), and every
+relevant cosine is higher than the random max.
