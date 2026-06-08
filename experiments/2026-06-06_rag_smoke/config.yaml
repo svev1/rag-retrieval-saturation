@@ -1,0 +1,26 @@
+# Parameters for the M2 RAG smoke run.
+#
+# These knobs live here, NOT in the code. The code in src/ows_retrieval/rag/ is
+# generic; this file is its input. The full k-sweep will be a SEPARATE folder with
+# its own config.yaml (different model / cap), so this smoke stays frozen exactly
+# as run and nothing is overwritten.
+
+experiment: m2_smoke
+date: 2026-06-06
+
+# Smoke slice: the same 4 vetted topics used for the M1 BM25 smoke.
+topic_ids: [24, 31, 32, 52]
+retrievers: [bm25, dense]
+k_values: [1, 3, 5, 10, 20, 50]
+
+# Generator (local, via Ollama HTTP API)
+model: gemma2:2b
+options:
+  temperature: 0      # deterministic -> cacheable, reproducible answers
+  seed: 42
+  num_ctx: 8192       # Gemma 2 native window
+  num_predict: 512    # answer room reserved inside num_ctx
+
+# Context building
+char_cap: 500           # per-document front-truncation (see check_window_fit.py)
+prompt_template_version: 1
