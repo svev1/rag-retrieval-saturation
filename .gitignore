@@ -62,6 +62,10 @@ data/interim/*
 data/processed/*
 data/external/*
 
+# Local ir_datasets staging: a rebuildable mirror of data/raw in the layout
+# ir_datasets_owi expects. Recreated on demand by data.ensure_ir_datasets_home().
+data/ir_datasets_home/
+
 # Keep folder structure
 !data/raw/.gitkeep
 !data/interim/.gitkeep

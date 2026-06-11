@@ -1,4 +1,6 @@
 """Loaders for the OWS Curlie / Radboud-val data files."""
+import os
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -6,6 +8,13 @@ import pandas as pd
 import pyarrow.parquet as pq
 
 DATA_RAW = Path(__file__).resolve().parents[2] / "data" / "raw"
+
+# Where we stage the raw files into the directory layout ir_datasets_owi wants.
+# Kept inside the repo's data/ dir so it sits next to the source files it mirrors.
+IR_DATASETS_HOME = DATA_RAW.parent / "ir_datasets_home"
+
+# The split id ir_datasets_owi registers for the radboud-val documents.
+OWI_DATASET_ID = "ows-curlie-2025/radboud-val"
 
 # Jina V5 nano re-embedded artifacts (see docs/embeddings.md). One row per
 # chunk for docs, one row per query. Embeddings are L2-normalized float32.
@@ -54,6 +63,61 @@ def load_docs() -> pd.DataFrame:
     Returns a DataFrame with columns: id, title, description, main_content, url.
     """
     return pd.read_parquet(DATA_RAW / "subsample.parquet", columns=DOC_COLUMNS)
+
+
+def ensure_ir_datasets_home() -> Path:
+    """Stage the local raw files into the layout ir_datasets_owi expects.
+
+    The library reads the corpus from
+    ``<IR_DATASETS_HOME>/ows-curlie-2025/radboud-val/subsample.parquet`` with
+    ``topics.tsv`` and ``qrels.txt`` one level up. We already have all three in
+    ``data/raw``, so we mirror them into that layout and point IR_DATASETS_HOME
+    at it -- no separate download is needed.
+
+    The big parquet is hardlinked (no extra disk, no admin rights, unlike a
+    symlink on Windows); if a hardlink is not possible we fall back to a copy.
+    Idempotent: existing files are left in place.
+    """
+    base = IR_DATASETS_HOME / "ows-curlie-2025"
+    (base / "radboud-val").mkdir(parents=True, exist_ok=True)
+
+    def link_or_copy(src: Path, dst: Path) -> None:
+        if dst.exists():
+            return
+        try:
+            os.link(src, dst)
+        except OSError:
+            shutil.copy2(src, dst)
+
+    link_or_copy(DATA_RAW / "subsample.parquet", base / "radboud-val" / "subsample.parquet")
+    link_or_copy(DATA_RAW / "topics.tsv", base / "topics.tsv")
+    link_or_copy(DATA_RAW / "qrels.txt", base / "qrels.txt")
+
+    os.environ["IR_DATASETS_HOME"] = str(IR_DATASETS_HOME)
+    return IR_DATASETS_HOME
+
+
+def load_owi_docs() -> pd.DataFrame:
+    """Load the corpus with clean text, matching the dense retriever exactly.
+
+    Returns a DataFrame with columns: id, default_text.
+
+    ``default_text`` is ``title + sax_html_parser(main_content)`` -- the exact
+    text the Jina v5 embeddings were built from (verified byte-for-byte against
+    the embedding artifact's chunk_text_sha256). Both the raw HTML and the
+    ``description`` field are gone, because that is what ``default_text()``
+    leaves out. This is the clean counterpart to ``load_docs`` (which keeps the
+    raw HTML fields for the original BM25 index).
+
+    Row order follows the parquet's natural order and must stay stable: the BM25
+    index maps a result position back to a doc id through this frame.
+    """
+    ensure_ir_datasets_home()
+    import ir_datasets_owi  # only the clean path needs the library
+
+    dataset = ir_datasets_owi.load(OWI_DATASET_ID)
+    rows = [(doc.doc_id, doc.default_text()) for doc in dataset.docs_iter()]
+    return pd.DataFrame(rows, columns=["id", "default_text"])
 
 
 def load_doc_embeddings() -> pd.DataFrame:

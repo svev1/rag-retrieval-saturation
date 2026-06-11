@@ -1,4 +1,5 @@
 """Full-corpus BM25 evaluation with TREC retrieval metrics via ir_measures."""
+import argparse
 import json
 from pathlib import Path
 
@@ -6,8 +7,8 @@ import ir_measures
 import pandas as pd
 from ir_measures import R, nDCG
 
-from ows_retrieval.bm25 import build_index, search
-from ows_retrieval.data import load_docs, load_qrels, load_topics
+from ows_retrieval.bm25 import build_index, doc_text, search
+from ows_retrieval.data import load_docs, load_owi_docs, load_qrels, load_topics
 
 # Narrative-stated k-values for retrieval metrics.
 K_VALUES = [1, 3, 5, 10, 20, 50]
@@ -19,15 +20,22 @@ K_RETRIEVE = K_VALUES[-1]
 MEASURES = [nDCG @ k for k in K_VALUES] + [R @ k for k in K_VALUES]
 
 
-def run_bm25_full() -> pd.DataFrame:
+def run_bm25_full(docs: pd.DataFrame | None = None, text_fn=doc_text) -> pd.DataFrame:
     """Index every doc, run every topic, return rankings as a DataFrame.
 
     Columns: topic_id, doc_id, rank, score.
+
+    `docs` and `text_fn` select the corpus and how to read each row's text.
+    They default to the original HTML index (`load_docs` + `doc_text`), so
+    existing callers are unchanged. Pass the clean ir_datasets corpus
+    (`docs=load_owi_docs(), text_fn=lambda row: row["default_text"]`) to build
+    the index that matches the dense retriever.
     """
     topics = load_topics()
-    docs = load_docs()
+    if docs is None:
+        docs = load_docs()
 
-    retriever = build_index(docs)
+    retriever = build_index(docs, text_fn=text_fn)
 
     rows = []
     for _, t in topics.iterrows():
@@ -79,14 +87,43 @@ def compute_metrics(run_df: pd.DataFrame, qrels_df: pd.DataFrame) -> dict:
     return {str(measure): float(value) for measure, value in raw.items()}
 
 
+# Each index variant: which corpus, how to read its text, where to write, and
+# the run-file tag. "html" reproduces the original v1 run; "clean" builds the
+# HTML-stripped index over default_text() that matches the dense retriever.
+INDEX_VARIANTS = {
+    "html": {
+        "docs_fn": load_docs,
+        "text_fn": doc_text,
+        "experiment_dir": Path("experiments/2026-05-17_bm25_full"),
+        "tag": "bm25",
+    },
+    "clean": {
+        "docs_fn": load_owi_docs,
+        "text_fn": lambda row: row["default_text"],
+        "experiment_dir": Path("experiments/2026-06-09_bm25_clean_full"),
+        "tag": "bm25_clean",
+    },
+}
+
+
 if __name__ == "__main__":
-    experiment_dir = Path("experiments/2026-05-17_bm25_full")
+    parser = argparse.ArgumentParser(description="Run a full-corpus BM25 evaluation.")
+    parser.add_argument(
+        "--index",
+        choices=sorted(INDEX_VARIANTS),
+        default="html",
+        help="which document text to index: 'html' (v1) or 'clean' (matches dense)",
+    )
+    args = parser.parse_args()
+    variant = INDEX_VARIANTS[args.index]
+
+    experiment_dir = variant["experiment_dir"]
     experiment_dir.mkdir(parents=True, exist_ok=True)
 
-    run_df = run_bm25_full()
+    run_df = run_bm25_full(docs=variant["docs_fn"](), text_fn=variant["text_fn"])
 
-    run_file = experiment_dir / "bm25.run.txt"
-    write_trec_run(run_df, run_file)
+    run_file = experiment_dir / f"{variant['tag']}.run.txt"
+    write_trec_run(run_df, run_file, tag=variant["tag"])
 
     metrics = compute_metrics(run_df, load_qrels())
 

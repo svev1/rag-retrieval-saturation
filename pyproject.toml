@@ -20,6 +20,12 @@ dependencies = [
   # with jina-embeddings-v5-text-nano-retrieval (see docs/embeddings.md), so no
   # runtime encoder is needed for the dense baseline.
   "faiss-cpu",
+  # Clean BM25 index: ir_datasets_owi reads subsample.parquet and exposes
+  # default_text() (title + HTML-stripped main_content), the exact text the
+  # dense retriever embedded. Used by data.load_owi_docs / eval --index clean.
+  # No encoder/torch needed; pulls ir-datasets + duckdb only.
+  "ir-datasets>=0.5.8",
+  "ir-datasets-owi>=0.1.2",
 ]
 
 [project.optional-dependencies]
@@ -47,8 +53,7 @@ embedding = [
   "einops>=0.7",
   "peft>=0.15.2",
   "huggingface-hub>=0.23",
-  "ir-datasets>=0.5.8",
-  "ir-datasets-owi>=0.0.6",
+  # NOTE: ir-datasets / ir-datasets-owi are core dependencies now (see above).
   "tqdm>=4.66",
 ]
 

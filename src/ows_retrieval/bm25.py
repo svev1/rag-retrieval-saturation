@@ -33,12 +33,17 @@ def doc_text(row) -> str:
     return " ".join(parts)
 
 
-def build_index(docs: pd.DataFrame) -> BM25Okapi:
+def build_index(docs: pd.DataFrame, text_fn=doc_text) -> BM25Okapi:
     """Tokenize the docs and build a rank_bm25 BM25Okapi index.
 
     Position i in the returned index corresponds to docs.iloc[i].
+
+    `text_fn` decides how to read one row's text. It defaults to `doc_text`
+    (title + description + main_content, raw HTML) so existing callers are
+    unchanged. Pass a different reader to index a different text source, e.g.
+    `text_fn=lambda row: row["default_text"]` for the clean ir_datasets corpus.
     """
-    tokenized_corpus = [tokenize(doc_text(row)) for _, row in docs.iterrows()]
+    tokenized_corpus = [tokenize(text_fn(row)) for _, row in docs.iterrows()]
     return BM25Okapi(tokenized_corpus)
 
 
