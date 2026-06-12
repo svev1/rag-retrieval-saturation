@@ -10,7 +10,7 @@ import re
 from pathlib import Path
 
 from ows_retrieval.bm25 import doc_text
-from ows_retrieval.data import load_docs
+from ows_retrieval.data import load_docs, load_owi_docs
 
 # Matches any HTML tag, e.g. <a href="...">, </p>, <h2>. Intentionally simple --
 # we are scrubbing noise from scraped pages, not parsing HTML.
@@ -19,10 +19,12 @@ _HTML_TAG = re.compile(r"<[^>]+>")
 # Repo root: this file is src/ows_retrieval/rag/context.py, so parents[3] is the root.
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
-# The frozen run files produced by M1, keyed by retriever name.
+# The frozen run files produced by M1, keyed by retriever name. `bm25_clean` is
+# the v2 index built over default_text() (matches the dense text source).
 RUN_FILES = {
     "bm25": REPO_ROOT / "experiments" / "2026-05-17_bm25_full" / "bm25.run.txt",
     "dense": REPO_ROOT / "experiments" / "2026-05-31_dense_full" / "dense.run.txt",
+    "bm25_clean": REPO_ROOT / "experiments" / "2026-06-09_bm25_clean_full" / "bm25_clean.run.txt",
 }
 
 # Per-document character budget. Each retrieved doc is front-truncated to this many
@@ -59,14 +61,26 @@ def strip_html(text: str) -> str:
     return html.unescape(_HTML_TAG.sub(" ", text))
 
 
-def load_doc_text() -> dict[str, str]:
-    """Map every doc_id to its document text, with HTML removed.
+def load_doc_text(source: str = "html") -> dict[str, str]:
+    """Map every doc_id to its document text, keyed by `source`.
 
-    The text is title + description + main_content (via `bm25.doc_text`), then
-    stripped of HTML. The retrievers indexed the raw, HTML-laden text, but the
-    generator should read clean prose -- so we strip here, on the generation side
-    only. The frozen run files (what the retrievers returned) are unaffected.
+    Two sources, matching the two index variants:
+
+    - "html" (default, v1): title + description + main_content (via
+      `bm25.doc_text`), then run through the crude `strip_html`. This pairs with
+      the original HTML BM25 index.
+    - "clean" (v2): `default_text()` (title + SAX-stripped main_content) straight
+      from `load_owi_docs` -- no `strip_html`, no `description`. This is the exact
+      text the dense and bm25_clean retrievers ranked on, so the generator reads
+      the same prose it retrieved.
+
+    Either way the return shape is {doc_id: text}; `build_context` is unaffected.
     """
+    if source == "clean":
+        docs = load_owi_docs()
+        return dict(zip(docs["id"], docs["default_text"]))
+    if source != "html":
+        raise ValueError(f"unknown doc text source: {source!r}")
     docs = load_docs()
     return {row["id"]: strip_html(doc_text(row)) for _, row in docs.iterrows()}
 
@@ -111,6 +125,7 @@ def check_coverage(doc_text_map: dict[str, str]) -> None:
 
 
 if __name__ == "__main__":
-    doc_text_map = load_doc_text()
-    check_coverage(doc_text_map)
-    print(f"{len(doc_text_map)} documents; every run-file doc_id resolves to text")
+    for source in ("html", "clean"):
+        doc_text_map = load_doc_text(source)
+        check_coverage(doc_text_map)
+        print(f"{source:5s}: {len(doc_text_map)} documents; every run-file doc_id resolves to text")

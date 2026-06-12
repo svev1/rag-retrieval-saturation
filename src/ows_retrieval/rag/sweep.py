@@ -41,14 +41,20 @@ def run_sweep(
     model: str,
     options: dict,
     char_cap: int,
+    doc_text_source: str = "html",
 ) -> None:
     """Generate and cache one answer per (retriever, topic, k), skipping existing.
 
     Loads the doc-text map and query texts once, then reads each retriever's run
     file once and slices nested top-k prefixes from it.
+
+    `doc_text_source` picks which text the generator reads (see
+    `context.load_doc_text`): "html" (v1) or "clean" (default_text(), pairs with
+    the bm25_clean / dense run files). Defaults to "html" so existing configs are
+    unchanged.
     """
     queries = load_topics().set_index("topic_id")["query"].to_dict()
-    text_map = load_doc_text()
+    text_map = load_doc_text(doc_text_source)
 
     generated = skipped = failed = 0
     for retriever in retrievers:
@@ -117,6 +123,7 @@ def main() -> None:
         model=config["model"],
         options=config["options"],
         char_cap=config["char_cap"],
+        doc_text_source=config.get("doc_text_source", "html"),
     )
 
 

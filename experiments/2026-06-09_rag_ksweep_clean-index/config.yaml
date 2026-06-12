@@ -1,0 +1,38 @@
+# Parameters for the M2 RAG full k-sweep -- v2 "clean-index" run.
+#
+# These knobs live here, NOT in the code. The code in src/ows_retrieval/rag/ is
+# generic; this file is its input. It is a copy of the v1 html-index config with
+# three changes only, so the two caches isolate the effect of the index/text
+# change:
+#   - retrievers: bm25 -> bm25_clean (BM25 rebuilt over default_text())
+#   - doc_text_source: html -> clean (generator reads default_text(), the same
+#     text the retrievers ranked on -- no strip_html, no description)
+#   - labels (experiment/date)
+# Everything else (topics, k_values, model, options, char_cap, prompt template)
+# is identical to 2026-06-07_rag_ksweep_html-index, so v1 vs v2 differ only by
+# which run file and which generation text.
+
+experiment: m2_ksweep_clean-index
+date: 2026-06-09
+
+# Full evaluation set: all 28 judged topics.
+topic_ids: [3, 4, 7, 8, 13, 15, 16, 18, 20, 23, 24, 31, 32, 34, 39, 42, 43, 44, 46, 48, 52, 54, 58, 60, 64, 68, 69, 74]
+retrievers: [bm25_clean, dense]
+k_values: [1, 3, 5, 10, 20, 50]
+
+# Document text fed to the generator: the clean default_text() (matches dense).
+doc_text_source: clean
+
+# Generator (local, via Ollama HTTP API)
+model: gemma2:9b
+options:
+  temperature: 0      # deterministic -> cacheable, reproducible answers
+  seed: 42
+  num_ctx: 8192       # Gemma 2 native window
+  num_predict: 512    # answer room reserved inside num_ctx
+  num_gpu: 24         # partial GPU offload: 9b + 8k KV cache OOMs at full offload
+                      # on this 8GB card; 24 layers fits with ~2.4GB headroom.
+
+# Context building
+char_cap: 500           # per-document front-truncation (smoke confirmed k=50 fits)
+prompt_template_version: 1
