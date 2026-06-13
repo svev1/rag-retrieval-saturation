@@ -42,6 +42,8 @@ def run_sweep(
     options: dict,
     char_cap: int,
     doc_text_source: str = "html",
+    think: bool | None = None,
+    request_timeout: float = 300.0,
 ) -> None:
     """Generate and cache one answer per (retriever, topic, k), skipping existing.
 
@@ -77,7 +79,10 @@ def run_sweep(
                 # GPU OOM) so an unattended sweep keeps going; the uncached key is
                 # simply retried on the next run.
                 try:
-                    result = gemma_generate(prompt, model=model, options=options)
+                    result = gemma_generate(
+                        prompt, model=model, options=options,
+                        timeout=request_timeout, think=think,
+                    )
                 except RuntimeError as err:
                     failed += 1
                     print(f"FAIL  {path.name}  {err}")
@@ -96,6 +101,7 @@ def run_sweep(
                         "output_tokens": result.output_tokens,
                         "model": model,
                         "options": options,
+                        "think": think,
                         "prompt_template_version": PROMPT_TEMPLATE_VERSION,
                     },
                 )
@@ -124,6 +130,8 @@ def main() -> None:
         options=config["options"],
         char_cap=config["char_cap"],
         doc_text_source=config.get("doc_text_source", "html"),
+        think=config.get("think"),
+        request_timeout=config.get("request_timeout", 300.0),
     )
 
 

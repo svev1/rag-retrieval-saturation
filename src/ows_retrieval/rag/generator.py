@@ -32,14 +32,22 @@ def gemma_generate(
     model: str,
     options: dict,
     timeout: float = 300.0,
+    think: bool | None = None,
 ) -> GenerationResult:
     """Send one prompt to Ollama and return the answer with its token counts.
 
     `options` is passed straight through to Ollama (temperature, seed, num_ctx,
-    num_predict). Raises RuntimeError if the server is unreachable or the response
-    has no answer text, so a failed call never silently caches an empty answer.
+    num_predict). `think` controls Ollama's top-level reasoning channel: leave it
+    None for non-reasoning models (e.g. gemma2) so the field is omitted, or set
+    False for a reasoning model (e.g. gemma4) so it answers directly instead of
+    spending num_predict on hidden reasoning (which yields an empty `response`).
+
+    Raises RuntimeError if the server is unreachable or the response has no answer
+    text, so a failed call never silently caches an empty answer.
     """
     payload = {"model": model, "prompt": prompt, "stream": False, "options": options}
+    if think is not None:
+        payload["think"] = think
     request = urllib.request.Request(
         OLLAMA_URL,
         data=json.dumps(payload).encode("utf-8"),
