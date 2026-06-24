@@ -92,3 +92,6 @@ docs/_build/
 
 # Local package manager files
 node_modules/
+
+# RAGAS scoring resume log (intermediate; scores.parquet is the deliverable)
+experiments/*/scores.jsonl

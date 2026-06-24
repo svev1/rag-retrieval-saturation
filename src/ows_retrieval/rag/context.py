@@ -85,6 +85,19 @@ def load_doc_text(source: str = "html") -> dict[str, str]:
     return {row["id"]: strip_html(doc_text(row)) for _, row in docs.iterrows()}
 
 
+def shape_document(text: str, char_cap: int = DEFAULT_CHAR_CAP) -> str:
+    """Collapse runs of whitespace and front-truncate one document to `char_cap`.
+
+    Whitespace is collapsed so the cap counts real characters, not newlines; the
+    best-ranked content sits at the start, so a front truncation keeps it.
+    """
+    collapsed = " ".join(text.split())
+    snippet = collapsed[:char_cap]
+    if len(collapsed) > char_cap:
+        snippet += "…"
+    return snippet
+
+
 def build_context(
     doc_ids: list[str],
     doc_text_map: dict[str, str],
@@ -92,22 +105,14 @@ def build_context(
 ) -> str:
     """Turn a ranked list of doc_ids into the labeled context block for the prompt.
 
-    For each doc_id, in rank order: look up its text, collapse runs of whitespace
-    (so the cap counts real characters, not newlines), front-truncate to `char_cap`
-    (best-ranked content sits at the start of the text), and wrap it in a visible
-    `[Document N]` label so the generator can tell the documents apart. The labeled
-    snippets are joined with blank lines into one block.
-
-    `doc_ids` is already a top-k slice, so the caller controls how many documents
-    land in the block; this function just formats whatever it is given.
+    Each doc, in rank order, is shaped by `shape_document` and wrapped in a visible
+    `[Document N]` label so the generator can tell them apart; the snippets are
+    joined with blank lines. `doc_ids` is already a top-k slice.
     """
-    blocks = []
-    for n, doc_id in enumerate(doc_ids, start=1):
-        text = " ".join(doc_text_map[doc_id].split())
-        snippet = text[:char_cap]
-        if len(text) > char_cap:
-            snippet += "…"
-        blocks.append(f"[Document {n}]\n{snippet}")
+    blocks = [
+        f"[Document {n}]\n{shape_document(doc_text_map[doc_id], char_cap)}"
+        for n, doc_id in enumerate(doc_ids, start=1)
+    ]
     return "\n\n".join(blocks)
 
 

@@ -57,6 +57,23 @@ embedding = [
   "tqdm>=4.66",
 ]
 
+# Needed only to score the cached RAG answers with RAGAS
+# (src/ows_retrieval/rageval/). The judge LLM and the embedder run locally via
+# Ollama, reached through the langchain-ollama glue (ChatOllama / OllamaEmbeddings).
+# Swapping to an API judge later adds that provider's langchain-* package instead;
+# ragas pulls its own deps (langchain-core, datasets, pydantic).
+rageval = [
+  # Pin the langchain 0.3 line: langchain 1.x moved a module ragas 0.2 imports
+  # (langchain_community.chat_models.vertexai), which breaks `import ragas`.
+  "ragas>=0.2,<0.3",
+  "langchain-ollama>=0.3,<0.4",
+  "langchain-core<0.4",
+  "langchain-community<0.4",
+  "langchain<0.4",
+  "matplotlib",   # synthesis plots (quality/noise vs k)
+  "openpyxl",     # readable .xlsx audit record
+]
+
 [project.scripts]
 ows-embed = "ows_retrieval.embedding.cli:embed_docs_main"
 ows-embed-queries = "ows_retrieval.embedding.cli:embed_queries_main"
