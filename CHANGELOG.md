@@ -1,13 +1,15 @@
 # Changelog
 
-All notable changes to this template should be documented in this file.
+Notable milestones for this project. This is a high-level record, not a
+replacement for the git history.
 
-The format is inspired by Keep a Changelog, but can remain lightweight for internal research work.
+### Project history
 
-## [Unreleased]
-
-### Added
-
-- initial research repository template
-- GitLab issue templates for research questions and experiments
-- repository skeleton for code, docs, reports, experiments, notebooks, and data
+- **M1** — dataset loaded; BM25 and dense (Jina v5-nano + FAISS) retrieval;
+  Recall@k / nDCG@k baselines.
+- **M2** — RAG generation pipeline and cached k-sweep answers (Gemma 4 via Ollama).
+- **M3** — RAGAS Faithfulness / Answer Relevancy scoring, blind manual audit, and
+  the retrieval-noise vs. generation-quality analysis.
+- Re-embedded documents and queries with a pinned Jina v5-nano checkpoint instead
+  of the provided Jina V3 embeddings, to keep document/query encoding consistent
+  and reproducible.
