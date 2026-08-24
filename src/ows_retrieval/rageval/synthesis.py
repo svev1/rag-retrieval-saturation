@@ -23,6 +23,10 @@ K_VALUES = [1, 3, 5, 10, 20, 50]
 def load_joined(scores_path: Path, noise_path: Path) -> pd.DataFrame:
     scores = pd.read_parquet(scores_path)
     noise = pd.read_parquet(noise_path)
+    # Refusals have no answerable content, so faithfulness is undefined: mask it to NaN.
+    # RAGAS still emits a numeric 0/1 for these rows (see README), which would otherwise
+    # be averaged into the reported faithfulness. answer_relevancy is left untouched.
+    scores.loc[scores["is_refusal"], "faithfulness"] = float("nan")
     return scores.merge(noise, on=["retriever", "topic_id", "k"], validate="one_to_one")
 
 
