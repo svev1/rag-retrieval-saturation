@@ -25,7 +25,8 @@ plus a qrels-based retrieval-noise analysis.
 - Retrieval noise rises with `k`, but the noise–quality Spearman correlation is
   ≈ 0 — more (mostly unjudged) context neither helps nor hurts on this corpus.
 
-See the final report in [`docs/reports/`](docs/reports/) for the full write-up.
+See the [final seminar paper (PDF)](docs/reports/nemeth-alice-sveva-seminar-paper.pdf)
+for the full write-up.
 
 ## Repository layout
 
