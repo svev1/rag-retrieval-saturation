@@ -98,3 +98,5 @@ experiments/*/scores.jsonl
 
 # RAG answer caches embed full retrieved web-page text (OWIL: not redistributable)
 experiments/*/cache/
+# Manual-audit sheet embeds retrieved web-page text (OWIL: not redistributable)
+experiments/*/audit_sheet.xlsx

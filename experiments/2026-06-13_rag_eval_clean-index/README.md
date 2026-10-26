@@ -73,9 +73,10 @@ python -m ows_retrieval.rageval.audit \
   experiments/2026-06-13_rag_eval_clean-index/audit_sheet.xlsx
 ```
 
-The committed `audit_sheet.xlsx` is the **filled** version: `manual_faithfulness`,
-`manual_relevancy`, and `notes` rated by hand from the question, answer, and
-documents — still no RAGAS.
+The filled sheet (`manual_faithfulness`, `manual_relevancy`, and `notes` rated by
+hand from the question, answer, and documents — still no RAGAS) is not included
+in this repository because it embeds the full retrieved web-page text; the manual
+ratings are preserved in `audit_agreement.csv`.
 
 ## agreement (manual vs RAGAS)
 
