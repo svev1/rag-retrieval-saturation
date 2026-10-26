@@ -95,3 +95,6 @@ node_modules/
 
 # RAGAS scoring resume log (intermediate; scores.parquet is the deliverable)
 experiments/*/scores.jsonl
+
+# RAG answer caches embed full retrieved web-page text (OWIL: not redistributable)
+experiments/*/cache/

@@ -55,6 +55,10 @@ command that produced that run; the high-level pipeline is:
    Recall@k / nDCG@k (via `ir-measures`).
 3. **Generation** — `python -m ows_retrieval.rag.sweep <experiment>/config.yaml`
    caches one answer per (retriever, topic, k).
+   The answer caches (`experiments/*/cache/`) are not included in this
+   repository: they embed the full text of the retrieved web pages, which
+   belongs to the respective page owners and may not be redistributed under
+   the Open Web Index Licence. Re-run this step to regenerate them.
 4. **Evaluation** — `ows_retrieval.rageval` collates, scores with RAGAS, computes
    noise, and synthesises the plots and summary.
 
@@ -72,4 +76,13 @@ are the author's own work.
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+MIT — see [`LICENSE`](LICENSE). The MIT license covers the code in this
+repository only, not the dataset or the web content it indexes.
+
+## Data acknowledgement
+
+This work uses index files as part of the index partition created by the
+OpenWebSearch.eu project that has received funding from the European Union's
+Horizon Europe research and innovation programme under grant agreement
+No 101070014 (OpenWebSearch.EU). The data is used under the
+[Open Web Index Licence (OWIL)](https://openwebsearch.eu/owil-current/).
